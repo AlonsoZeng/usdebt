@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>债券数据分析 - 堆积图</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --tableau-blue: #5c6bc0;
+            --tableau-dark-blue: #3f51b5;
+            --tableau-light-blue: #7986cb;
+            --tableau-gray: #f5f5f5;
+            --tableau-dark-gray: #e0e0e0;
+            --tableau-text: #333333;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--tableau-gray);
+            color: var(--tableau-text);
+        }
+        
+        .navbar {
+            background-color: var(--tableau-dark-blue);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            color: white !important;
+            font-weight: 600;
+        }
+        
+        .main-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 25px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .dashboard-title {
+            color: var(--tableau-dark-blue);
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--tableau-dark-gray);
+        }
+        
+        .btn-tableau {
+            background-color: var(--tableau-blue);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-tableau:hover {
+            background-color: var(--tableau-dark-blue);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            color: white;
+        }
+        
+        .chart-container {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: white;
+        }
+        
+        #myChart {
+            width: 100%;
+            max-height: 600px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-control {
+            border: 1px solid var(--tableau-dark-gray);
+            border-radius: 4px;
+            padding: 8px 12px;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            border-top: 1px solid var(--tableau-dark-gray);
+        }
+        
+        .info-text {
+            background-color: var(--tableau-gray);
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+        
+        .date-info {
+            background-color: var(--tableau-light-blue);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .section-title {
+            color: var(--tableau-dark-blue);
+            font-weight: 600;
+            margin: 30px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--tableau-dark-gray);
+        }
+    </style>
+
+    <script>
+        function updateGraph() {
+            var selectBox = document.getElementById("xFieldSelect");
+            var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+            document.getElementById("xFieldForm").submit();
+        }
+
+        function calculateDateInfo() {
+            var today = new Date();
+            var year = today.getFullYear();
+            var month = today.getMonth() + 1; // JavaScript中的月份从0开始
+            var day = today.getDate();
+            var weekNumber = getWeekNumber(today);
+
+            var startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - today.getDay() + 1); // 星期一作为一周的开始
+            var endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6); // 星期日作为一周的结束
+
+            var dateInfoText = `今天是${year}年${padZero(month)}月${padZero(day)}日，在今年的第${weekNumber}个星期`;
+            document.getElementById("dateInfo").innerText = dateInfoText;
+        }
+
+        function getWeekNumber(d) {
+            // 复制日期对象
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            // 设置为该年第一天
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            // 计算当前年的第几天
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return weekNo;
+        }
+
+        function padZero(num) {
+            return num < 10 ? '0' + num : num;
+        }
+
+        window.onload = function() {
+            calculateDateInfo();
+        };
+    </script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-chart-line mr-2"></i>债券数据分析平台
+            </a>
+        </div>
+    </nav>
+
+    <div class="container main-container">
+        <h2 class="dashboard-title">
+            <i class="fas fa-chart-bar mr-2"></i>债券数据堆积图分析
+        </h2>
+        
+        <div class="date-info" id="dateInfo"></div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <form id="xFieldForm" method="POST" action="/graphdata" class="form-inline mb-4">
+                    <div class="form-group mr-3">
+                        <label for="xFieldSelect" class="mr-2">选择X轴字段:</label>
+                        <select id="xFieldSelect" name="x_field" class="form-control" onchange="updateGraph()">
+                            {% for column in columns %}
+                                <option value="{{ column }}" {{ 'selected' if x_field == column else '' }}>{{ column }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- 替换为自定义日期范围控件 -->
+                    <div class="form-group mr-3">
+                        <label for="dateRangeType" class="mr-2">日期范围:</label>
+                        <select id="dateRangeType" name="date_range_type" class="form-control" onchange="toggleDateRangeInputs()">
+                            <option value="preset" {% if date_range_type == 'preset' or not date_range_type %}selected{% endif %}>预设范围</option>
+                            <option value="custom" {% if date_range_type == 'custom' %}selected{% endif %}>自定义范围</option>
+                        </select>
+                    </div>
+                    
+                    <!-- 预设范围选择 -->
+                    <div id="presetRangeContainer" class="form-group mr-3" {% if date_range_type == 'custom' %}style="display:none"{% endif %}>
+                        <select name="years" id="years" class="form-control" onchange="updateGraph()">
+                            <option value="1" {% if years == 1 %}selected{% endif %}>最近1年</option>
+                            <option value="3" {% if years == 3 %}selected{% endif %}>最近3年</option>
+                            <option value="5" {% if years == 5 or not years %}selected{% endif %}>最近5年</option>
+                            <option value="10" {% if years == 10 %}selected{% endif %}>最近10年</option>
+                            <option value="0" {% if years == 0 %}selected{% endif %}>全部数据</option>
+                        </select>
+                    </div>
+                    
+                    <!-- 自定义日期范围 -->
+                    <div id="customRangeContainer" class="form-group mr-3" {% if date_range_type != 'custom' %}style="display:none"{% endif %}>
+                        <div class="d-flex align-items-center">
+                            <div class="form-group mr-2 mb-0">
+                                <label for="startDate" class="mr-1">开始日期:</label>
+                                <input type="date" id="startDate" name="start_date" class="form-control" 
+                                    value="{{ start_date if start_date else '' }}">
+                            </div>
+                            <div class="form-group mr-2 mb-0">
+                                <label for="endDate" class="mr-1">结束日期:</label>
+                                <input type="date" id="endDate" name="end_date" class="form-control"
+                                    value="{{ end_date if end_date else '' }}">
+                            </div>
+                            <button type="button" class="btn btn-tableau" onclick="updateGraph()">
+                                <i class="fas fa-filter mr-1"></i>应用筛选
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                
+                <script>
+                    function toggleDateRangeInputs() {
+                        const rangeType = document.getElementById('dateRangeType').value;
+                        const presetContainer = document.getElementById('presetRangeContainer');
+                        const customContainer = document.getElementById('customRangeContainer');
+                        const yearsSelect = document.getElementById('years');
+                        
+                        if (rangeType === 'preset') {
+                            presetContainer.style.display = 'block';
+                            customContainer.style.display = 'none';
+                            // 启用预设年份选择
+                            yearsSelect.disabled = false;
+                        } else {
+                            presetContainer.style.display = 'none';
+                            customContainer.style.display = 'block';
+                            // 禁用预设年份选择，避免同时提交两种日期范围
+                            yearsSelect.disabled = true;
+                        }
+                    }
+                    
+                    function updateGraph() {
+                        // 确保表单提交前根据当前选择的日期范围类型设置正确的参数
+                        const rangeType = document.getElementById('dateRangeType').value;
+                        const startDate = document.getElementById('startDate');
+                        const endDate = document.getElementById('endDate');
+                        
+                        // 验证自定义日期范围
+                        if (rangeType === 'custom') {
+                            if (!startDate.value) {
+                                alert('请选择开始日期');
+                                return false;
+                            }
+                            if (!endDate.value) {
+                                alert('请选择结束日期');
+                                return false;
+                            }
+                            if (new Date(startDate.value) > new Date(endDate.value)) {
+                                alert('开始日期不能晚于结束日期');
+                                return false;
+                            }
+                        }
+                        
+                        // 提交表单
+                        document.getElementById("xFieldForm").submit();
+                    }
+                    
+                    // 页面加载时初始化日期范围控件状态
+                    document.addEventListener('DOMContentLoaded', function() {
+                        toggleDateRangeInputs();
+                    });
+                </script>
+                
+                <div class="chart-container">
+                    {{ graph_html | safe }}
+                </div>
+                
+                <div class="info-text">
+                    <p><i class="fas fa-info-circle mr-2"></i>久期整数：0代表久期为0~1个月，不包含1个月；1代表1~2个月，不包含2个月，以此类推。offeringAmount的单位是billion</p>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="section-title">
+            <i class="fas fa-calendar-alt mr-2"></i>月内数据日度细节
+        </h3>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <form id="filterForm" class="mb-4">
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label for="purpose">统计目的:</label>
+                            <select id="purpose" name="purpose" class="form-control">
+                                <option value="AnnouncementDate">AnnouncementDate</option>
+                                <option value="AuctionDate">AuctionDate</option>
+                                <option value="IssueDate">IssueDate</option>
+                                <option value="MaturityDate">MaturityDate</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group col-md-3">
+                            <label for="year">年份:</label>
+                            <select id="year" name="year" class="form-control"></select>
+                        </div>
+                        
+                        <div class="form-group col-md-3">
+                            <label for="month">月份:</label>
+                            <select id="month" name="month" class="form-control">
+                                <option value="1">1月</option>
+                                <option value="2">2月</option>
+                                <option value="3">3月</option>
+                                <option value="4">4月</option>
+                                <option value="5">5月</option>
+                                <option value="6">6月</option>
+                                <option value="7">7月</option>
+                                <option value="8">8月</option>
+                                <option value="9">9月</option>
+                                <option value="10">10月</option>
+                                <option value="11">11月</option>
+                                <option value="12">12月</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-tableau">
+                                <i class="fas fa-search mr-2"></i>提交查询
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                
+                <div class="chart-container">
+                    <canvas id="myChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <div class="container">
+            <p>© 2023 债券数据分析平台 | 数据来源: Treasury Direct</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const yearSelect = document.getElementById('year');
+            const currentYear = new Date().getFullYear();
+
+            for (let year = 2014; year <= currentYear; year++) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            }
+
+            let chartInstance = null;
+
+            document.getElementById('filterForm').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const purpose = document.getElementById('purpose').value;
+                const year = document.getElementById('year').value;
+                const month = document.getElementById('month').value;
+
+                const response = await fetch('/get_data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ purpose, year, month })
+                });
+                const data = await response.json();
+
+                const ctx = document.getElementById('myChart').getContext('2d');
+                
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Offering Amount',
+                            data: data.values,
+                            backgroundColor: 'rgba(92, 107, 192, 0.7)',
+                            borderColor: 'rgba(63, 81, 181, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { 
+                                beginAtZero: true,
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            y: { 
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: '月度数据分布'
+                            }
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

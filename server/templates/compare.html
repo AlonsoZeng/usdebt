@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare Data</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Compare Data</h1>
+    <form id="compareForm" method="post" action="/compare">
+        <label for="group1_start_date">Group 1 Start Date:</label>
+        <input type="date" id="group1_start_date" name="group1_start_date" value="{{ group1_start_date }}" required>
+        <label for="group1_end_date">Group 1 End Date:</label>
+        <input type="date" id="group1_end_date" name="group1_end_date" value="{{ group1_end_date }}" required>
+        
+        <label for="group2_start_date">Group 2 Start Date:</label>
+        <input type="date" id="group2_start_date" name="group2_start_date" value="{{ group2_start_date }}" required>
+        <label for="group2_end_date">Group 2 End Date:</label>
+        <input type="date" id="group2_end_date" name="group2_end_date" value="{{ group2_end_date }}" required>
+
+        <label for="date_field">Date Field:</label>
+        <select id="date_field" name="date_field" required>
+            <option value="AnnouncementDate">Announcement Date</option>
+            <option value="AuctionDate">Auction Date</option>
+            <option value="IssueDate">Issue Date</option>
+            <option value="MaturityDate">Maturity Date</option>
+            <!-- Add other date fields as needed -->
+        </select>
+
+        <button type="submit">Compare</button>
+    </form>
+    <div id="graph_div">{{ graph_html | safe }}</div>
+</body>
+</html>

@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>债券数据分析平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <style>
+        :root {
+            --tableau-blue: #5c6bc0;
+            --tableau-dark-blue: #3f51b5;
+            --tableau-light-blue: #7986cb;
+            --tableau-gray: #f5f5f5;
+            --tableau-dark-gray: #e0e0e0;
+            --tableau-text: #333333;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--tableau-gray);
+            color: var(--tableau-text);
+        }
+        
+        .navbar {
+            background-color: var(--tableau-dark-blue);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            color: white !important;
+            font-weight: 600;
+        }
+        
+        .main-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 25px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            position: relative; /* 添加相对定位 */
+        }
+        
+        .dashboard-title {
+            color: var(--tableau-dark-blue);
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--tableau-dark-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .dashboard-title h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--tableau-dark-blue);
+        }
+        
+        /* 移除不需要的样式 */
+        /* .top-right-button {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            z-index: 10;
+        } */
+        
+        .action-buttons {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-tableau {
+            background-color: var(--tableau-blue);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-tableau:hover {
+            background-color: var(--tableau-dark-blue);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            color: white;
+        }
+        
+        .btn-tableau i {
+            margin-right: 8px;
+        }
+        
+        .result-message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background-color: var(--tableau-light-blue);
+            color: white;
+            display: none;
+        }
+        
+        .pagination {
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .pagination a, .pagination span {
+            margin: 0 5px;
+            padding: 8px 12px;
+            border: 1px solid var(--tableau-dark-gray);
+            text-decoration: none;
+            color: var(--tableau-blue);
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .pagination a:hover {
+            background-color: var(--tableau-light-blue);
+            color: white;
+            border-color: var(--tableau-light-blue);
+        }
+        
+        .pagination .current-page {
+            background-color: var(--tableau-blue);
+            color: white;
+            border-color: var(--tableau-blue);
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .data-table th {
+            background-color: var(--tableau-blue);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+            width: auto;
+            min-width: 100px;
+        }
+        
+        .data-table {
+            table-layout: auto;
+        }
+        
+        .data-table td {
+            padding: 10px;
+            border-bottom: 1px solid var(--tableau-dark-gray);
+        }
+        
+        .data-table tr:hover {
+            background-color: var(--tableau-gray);
+        }
+        
+        .data-table .btn-danger {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .per-page-form {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 15px;
+        }
+        
+        .per-page-form select {
+            margin-left: 8px;
+            padding: 6px;
+            border: 1px solid var(--tableau-dark-gray);
+            border-radius: 4px;
+        }
+        
+        .data-info {
+            background-color: var(--tableau-gray);
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .data-info h5 {
+            color: var(--tableau-dark-blue);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .data-info p {
+            margin-bottom: 8px;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            border-top: 1px solid var(--tableau-dark-gray);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-chart-line mr-2"></i>债券数据分析平台
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/graphdata">
+                            <i class="fas fa-chart-bar mr-1"></i>生成堆积图
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/compare">
+                            <i class="fas fa-balance-scale mr-1"></i>数据对比分析
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-container">
+        <!-- 修改标题区域，将按钮放在标题右侧 -->
+        <div class="dashboard-title">
+            <h2><i class="fas fa-database mr-2"></i>债券数据管理</h2>
+            
+            <button id="updateData" class="btn btn-tableau">
+                <i class="fas fa-sync-alt"></i>获取最新数据
+            </button>
+        </div>
+        
+        <!-- 结果消息区 -->
+        <div id="result" class="result-message"></div>
+
+        <!-- 分页控件 -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+            <div class="pagination mb-0">
+                {% if page > 1 %}
+                <a href="{{ url_for('index', page=1, per_page=per_page) }}">
+                    <i class="fas fa-angle-double-left"></i> 首页
+                </a>
+                <a href="{{ url_for('index', page=page-1, per_page=per_page) }}">
+                    <i class="fas fa-angle-left"></i> 上一页
+                </a>
+                {% endif %}
+                
+                {% for p in range([1, page-2]|max, [total_pages+1, page+3]|min) %}
+                {% if p == page %}
+                <span class="current-page">{{ p }}</span>
+                {% else %}
+                <a href="{{ url_for('index', page=p, per_page=per_page) }}">{{ p }}</a>
+                {% endif %}
+                {% endfor %}
+                
+                {% if page < total_pages %}
+                <a href="{{ url_for('index', page=page+1, per_page=per_page) }}">
+                    下一页 <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="{{ url_for('index', page=total_pages, per_page=per_page) }}">
+                    末页 <i class="fas fa-angle-double-right"></i>
+                </a>
+                {% endif %}
+            </div>
+            
+            <div class="pagination-info d-flex align-items-center">
+                <p class="mb-0 mr-3">共 <strong>{{ total_records }}</strong> 条记录，当前第 <strong>{{ page }}/{{ total_pages }}</strong> 页</p>
+            
+                <div class="per-page-form">
+                    <label class="mb-0">每页显示：
+                        <select name="per_page" onchange="this.form.submit()">
+                            {% for n in [10, 20, 50, 100] %}
+                            <option value="{{ n }}" {% if n == per_page %}selected{% endif %}>{{ n }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
+            </div>
+            
+
+        </div>
+        
+        
+        <!-- 展示数据 -->
+        <div class="table-container">
+            {% for table in tables %}
+                <!-- 添加删除功能的脚本 -->
+                <script>
+                    function confirmDelete(id) {
+                        if (confirm('确定要删除这条记录吗？')) {
+                            fetch('/delete-record/' + id, {
+                                method: 'POST'
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    showMessage('删除成功', 'success');
+                                    // 刷新页面以显示更新后的数据
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 1000);
+                                } else {
+                                    showMessage('删除失败: ' + data.message, 'error');
+                                }
+                            })
+                            .catch(error => {
+                                showMessage('删除出错: ' + error, 'error');
+                            });
+                        }
+                    }
+                    
+                    function showMessage(message, type) {
+                        const resultElement = document.getElementById('result');
+                        resultElement.innerText = message;
+                        resultElement.style.display = 'block';
+                        
+                        if (type === 'success') {
+                            resultElement.style.backgroundColor = '#4caf50';
+                        } else if (type === 'error') {
+                            resultElement.style.backgroundColor = '#f44336';
+                        } else {
+                            resultElement.style.backgroundColor = '#2196f3';
+                        }
+                        
+                        // 5秒后自动隐藏消息
+                        setTimeout(() => {
+                            resultElement.style.display = 'none';
+                        }, 5000);
+                    }
+                </script>
+                
+                <!-- 修改表格，添加删除按钮，并使URL列可点击 -->
+                {% if loop.index0 == 0 %}
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">操作</th>
+                                {% for column in titles %}
+                                <th>{{ column }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for index, row in data.iterrows() %}
+                            <tr>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" onclick="confirmDelete('{{ index + 1 }}')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </td>
+                                {% for column in data.columns %}
+                                    {% if column == 'URL' or column == 'url' or column == 'Url' %}
+                                    <td>
+                                        <a href="{{ row[column] }}" target="_blank" title="打开XML文件">
+                                            {{ row[column] }}
+                                        </a>
+                                    </td>
+                                    {% else %}
+                                    <td>{{ row[column] }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    {{ table | safe }}
+                {% endif %}
+            {% endfor %}
+        </div>
+        
+        <!-- 底部分页控件 -->
+        <div class="pagination">
+            {% if page > 1 %}
+            <a href="{{ url_for('index', page=1, per_page=per_page) }}">
+                <i class="fas fa-angle-double-left"></i> 首页
+            </a>
+            <a href="{{ url_for('index', page=page-1, per_page=per_page) }}">
+                <i class="fas fa-angle-left"></i> 上一页
+            </a>
+            {% endif %}
+            
+            {% for p in range([1, page-2]|max, [total_pages+1, page+3]|min) %}
+            {% if p == page %}
+            <span class="current-page">{{ p }}</span>
+            {% else %}
+            <a href="{{ url_for('index', page=p, per_page=per_page) }}">{{ p }}</a>
+            {% endif %}
+            {% endfor %}
+            
+            {% if page < total_pages %}
+            <a href="{{ url_for('index', page=page+1, per_page=per_page) }}">
+                下一页 <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="{{ url_for('index', page=total_pages, per_page=per_page) }}">
+                末页 <i class="fas fa-angle-double-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        
+        <!-- 字段说明区域 -->
+        <div class="data-info">
+            <h5><i class="fas fa-info-circle mr-2"></i>字段说明</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>SecurityTermWeekYear</strong>：债券的期限（以周为单位）</p>
+                    <p><strong>SecurityTermDayMonth</strong>：债券的期限（以天为单位）</p>
+                    <p><strong>SecurityType</strong>：债券类型，如国库券（BILL）</p>
+                    <p><strong>CUSIP</strong>：债券的唯一标识码</p>
+                    <p><strong>AnnouncementDate</strong>：拍卖公告日期</p>
+                    <p><strong>AuctionDate</strong>：拍卖日期</p>
+                    <p><strong>IssueDate</strong>：债券发行日期</p>
+                    <p><strong>MaturityDate</strong>：债券到期日期</p>
+                    <p><strong>OfferingAmount</strong>：本次拍卖的发行金额</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>CompetitiveTenderAccepted</strong>：是否接受竞争性投标</p>
+                    <p><strong>NonCompetitiveTenderAccepted</strong>：是否接受非竞争性投标</p>
+                    <p><strong>TreasuryRetailTenderAccepted</strong>：是否接受零售投标</p>
+                    <p><strong>TypeOfAuction</strong>：拍卖类型</p>
+                    <p><strong>CompetitiveClosingTime</strong>：竞争性投标的截止时间</p>
+                    <p><strong>NonCompetitiveClosingTime</strong>：非竞争性投标的截止时间</p>
+                    <p><strong>NetLongPositionReport</strong>：净多头头寸报告</p>
+                    <p><strong>MaxAward</strong>：单个投标人能获得的最大额度</p>
+                    <p><strong>MaxSingleBid</strong>：单个投标的最大额度</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <div class="container">
+            <p>© 2023 债券数据分析平台 | 数据来源: Treasury Direct</p>
+        </div>
+    </footer>
+
+    <!-- 在页面底部添加 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        document.getElementById("updateData").onclick = function() {
+            const resultElement = document.getElementById("result");
+            resultElement.innerText = '正在更新数据，请稍候...';
+            resultElement.style.display = 'block';
+            resultElement.style.backgroundColor = '#2196f3';
+            
+            fetch('/update-data', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                resultElement.innerText = data.message;
+                
+                if (data.success) {
+                    resultElement.style.backgroundColor = '#4caf50';
+                    // 添加延时后刷新页面，让用户有时间看到更新成功的消息
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1500); // 1.5秒后刷新页面
+                } else {
+                    resultElement.style.backgroundColor = '#f44336';
+                }
+            })
+            .catch(error => {
+                resultElement.innerText = 'Error: ' + error;
+                resultElement.style.backgroundColor = '#f44336';
+            });
+        };
+        
+        // 表单提交
+        document.querySelector('.per-page-form select').onchange = function() {
+            window.location.href = '/?per_page=' + this.value;
+        };
+    </script>
+</body>
+</html>

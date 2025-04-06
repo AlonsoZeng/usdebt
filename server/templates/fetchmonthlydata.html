@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>统计页面</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>统计页面</h1>
+    <form id="form" onsubmit="return false;">
+        <label for="purpose">统计目的:</label>
+        <select id="purpose" name="purpose">
+            <option value="AnnouncementDate" selected>AnnouncementDate</option>
+            <option value="AuctionDate">AuctionDate</option>
+            <option value="IssueDate">IssueDate</option>
+            <option value="MaturityDate">MaturityDate</option>
+        </select>
+        <br><br>
+        <label for="year">年份:</label>
+        <select id="year" name="year"></select>
+        <br><br>
+        <label for="month">月份:</label>
+        <select id="month" name="month">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+        </select>
+        <br><br>
+        <button type="button" onclick="fetch_data()">提交</button>
+    </form>
+    <br><br>
+    <canvas id="myChart" width="400" height="200"></canvas>
+
+    <script>
+        // Populate year options from 2014 to current year
+        const currentYear = new Date().getFullYear();
+        const yearSelect = document.getElementById('year');
+        for (let year = 2014; year <= currentYear; year++) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            if (year === currentYear) option.selected = true;  // Set current year as default
+            yearSelect.appendChild(option);
+        }
+
+        async function fetch_data() {
+            const purpose = document.getElementById('purpose').value;
+            const year = document.getElementById('year').value;
+            const month = document.getElementById('month').value;
+
+            if (!purpose || !year || !month) {
+                alert('请选择统计目的、年份和月份');
+                return;
+            }
+
+            const requestData = { purpose, year, month };
+            console.log('Sending request data:', requestData);
+
+            const response = await fetch('/fetchmonthlydata', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                createChart(data);
+            } else {
+                console.error('Error fetching data:', response.statusText);
+            }
+        }
+
+        function createChart(data) {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const labels = data.map(item => item.date);
+            const values = data.map(item => item.total);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Offering Amount',
+                        data: values,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Offering Amount'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
