@@ -3,33 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compare Data</title>
+    <title>数据对比分析</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --tableau-blue: #5c6bc0;
+            --tableau-dark-blue: #3f51b5;
+            --tableau-light-blue: #7986cb;
+            --tableau-gray: #f5f5f5;
+            --tableau-dark-gray: #e0e0e0;
+            --tableau-text: #333333;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--tableau-gray);
+            color: var(--tableau-text);
+        }
+        
+        .navbar {
+            background-color: var(--tableau-dark-blue);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            color: white !important;
+            font-weight: 600;
+        }
+        
+        .main-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 25px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .dashboard-title {
+            color: var(--tableau-dark-blue);
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--tableau-dark-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .dashboard-title h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--tableau-dark-blue);
+        }
+        
+        .btn-tableau {
+            background-color: var(--tableau-blue);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-tableau:hover {
+            background-color: var(--tableau-dark-blue);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            color: white;
+        }
+        
+        .btn-tableau i {
+            margin-right: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-control {
+            border: 1px solid var(--tableau-dark-gray);
+            border-radius: 4px;
+            padding: 8px 12px;
+        }
+        
+        .form-control:focus {
+            border-color: var(--tableau-blue);
+            box-shadow: 0 0 0 0.2rem rgba(92, 107, 192, 0.25);
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            border-top: 1px solid var(--tableau-dark-gray);
+        }
+        
+        #graph_div {
+            margin-top: 30px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: var(--tableau-gray);
+        }
+        
+        .feature-description {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: var(--tableau-gray);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .feature-description h4 {
+            color: var(--tableau-dark-blue);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Compare Data</h1>
-    <form id="compareForm" method="post" action="/compare">
-        <label for="group1_start_date">Group 1 Start Date:</label>
-        <input type="date" id="group1_start_date" name="group1_start_date" value="{{ group1_start_date }}" required>
-        <label for="group1_end_date">Group 1 End Date:</label>
-        <input type="date" id="group1_end_date" name="group1_end_date" value="{{ group1_end_date }}" required>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-chart-line mr-2"></i>债券数据分析平台
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/graphdata">
+                            <i class="fas fa-chart-bar mr-1"></i>生成堆积图
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/compare">
+                            <i class="fas fa-balance-scale mr-1"></i>数据对比分析
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-container">
+        <div class="dashboard-title">
+            <h2><i class="fas fa-balance-scale mr-2"></i>数据对比分析</h2>
+        </div>
         
-        <label for="group2_start_date">Group 2 Start Date:</label>
-        <input type="date" id="group2_start_date" name="group2_start_date" value="{{ group2_start_date }}" required>
-        <label for="group2_end_date">Group 2 End Date:</label>
-        <input type="date" id="group2_end_date" name="group2_end_date" value="{{ group2_end_date }}" required>
+        <form id="compareForm" method="post" action="/compare" class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="group1_start_date"><i class="fas fa-calendar-alt mr-1"></i>第一组起始日期：</label>
+                    <input type="date" id="group1_start_date" name="group1_start_date" value="{{ group1_start_date }}" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="group1_end_date"><i class="fas fa-calendar-alt mr-1"></i>第一组结束日期：</label>
+                    <input type="date" id="group1_end_date" name="group1_end_date" value="{{ group1_end_date }}" class="form-control" required>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="group2_start_date"><i class="fas fa-calendar-alt mr-1"></i>第二组起始日期：</label>
+                    <input type="date" id="group2_start_date" name="group2_start_date" value="{{ group2_start_date }}" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="group2_end_date"><i class="fas fa-calendar-alt mr-1"></i>第二组结束日期：</label>
+                    <input type="date" id="group2_end_date" name="group2_end_date" value="{{ group2_end_date }}" class="form-control" required>
+                </div>
+            </div>
+            
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="date_field"><i class="fas fa-filter mr-1"></i>日期字段：</label>
+                    <select id="date_field" name="date_field" class="form-control" required>
+                        <option value="AnnouncementDate">公告日期</option>
+                        <option value="AuctionDate">拍卖日期</option>
+                        <option value="IssueDate">发行日期</option>
+                        <option value="MaturityDate">到期日期</option>
+                        <!-- Add other date fields as needed -->
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-tableau">
+                    <i class="fas fa-chart-line"></i>生成对比分析
+                </button>
+            </div>
+        </form>
+        
+        <div id="graph_div">{{ graph_html | safe }}</div>
+        
+        <!-- 功能说明区域 -->
+        <div class="feature-description">
+            <h4><i class="fas fa-info-circle mr-2"></i>功能说明</h4>
+            <p>本页面提供债券数据的时间段对比分析功能，帮助您直观地比较不同时间段内债券发行的情况。</p>
+            
+            <h5 class="mt-3">使用方法：</h5>
+            <ol>
+                <li>选择<strong>第一组</strong>的起始日期和结束日期（默认为上周一至上周五）</li>
+                <li>选择<strong>第二组</strong>的起始日期和结束日期（默认为上上周一至上上周五）</li>
+                <li>选择用于筛选数据的<strong>日期字段</strong>（公告日期、拍卖日期、发行日期或到期日期）</li>
+                <li>点击<strong>生成对比分析</strong>按钮查看结果</li>
+            </ol>
+            
+            <h5 class="mt-3">图表说明：</h5>
+            <p>生成的堆积柱状图将按照<strong>久期(月数整数)</strong>对债券进行分类，并显示两个时间段内各类债券的<strong>发行总额(OfferingAmount)</strong>。</p>
+            <p>通过这种可视化方式，您可以直观地比较不同时间段内债券发行的结构差异，帮助您更好地理解市场趋势和变化。</p>
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <div class="container">
+            <p>© 2023 债券数据分析平台 | 数据来源: Treasury Direct</p>
+        </div>
+    </footer>
 
-        <label for="date_field">Date Field:</label>
-        <select id="date_field" name="date_field" required>
-            <option value="AnnouncementDate">Announcement Date</option>
-            <option value="AuctionDate">Auction Date</option>
-            <option value="IssueDate">Issue Date</option>
-            <option value="MaturityDate">Maturity Date</option>
-            <!-- Add other date fields as needed -->
-        </select>
-
-        <button type="submit">Compare</button>
-    </form>
-    <div id="graph_div">{{ graph_html | safe }}</div>
+    <!-- 在页面底部添加 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

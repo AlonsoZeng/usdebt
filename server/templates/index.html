@@ -6,6 +6,7 @@
     <title>债券数据分析平台</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         :root {
             --tableau-blue: #5c6bc0;
@@ -427,27 +428,60 @@
             <h5><i class="fas fa-info-circle mr-2"></i>字段说明</h5>
             <div class="row">
                 <div class="col-md-6">
-                    <p><strong>SecurityTermWeekYear</strong>：债券的期限（以周为单位）</p>
-                    <p><strong>SecurityTermDayMonth</strong>：债券的期限（以天为单位）</p>
-                    <p><strong>SecurityType</strong>：债券类型，如国库券（BILL）</p>
-                    <p><strong>CUSIP</strong>：债券的唯一标识码</p>
-                    <p><strong>AnnouncementDate</strong>：拍卖公告日期</p>
-                    <p><strong>AuctionDate</strong>：拍卖日期</p>
-                    <p><strong>IssueDate</strong>：债券发行日期</p>
-                    <p><strong>MaturityDate</strong>：债券到期日期</p>
-                    <p><strong>OfferingAmount</strong>：本次拍卖的发行金额</p>
+                    <p><strong>CompetitiveBidDecimals</strong>：竞争性投标价格的小数精度</p>
+                    <p><strong>CompetitiveBidIncrement</strong>：竞争性投标的最小加价单位</p>
+                    <p><strong>AllocationPercentageDecimals</strong>：分配比例的小数精度</p>
+                    <p><strong>MinBidAmount</strong>：单次最小投标金额</p>
+                    <p><strong>MultiplesToBid</strong>：投标金额的整数倍要求</p>
+                    <p><strong>MinToIssue</strong>：最小发行金额</p>
+                    <p><strong>MultiplesToIssue</strong>：发行金额的整数倍要求</p>
+                    <p><strong>MatureSecurityAmount</strong>：到期债券的总金额</p>
+                    <p><strong>SOMAIncluded</strong>：是否包含系统公开市场账户（SOMA）</p>
+                    <p><strong>SOMAHoldings</strong>：SOMA的持有金额</p>
+                    <p><strong>MaturingDate</strong>：到期债券的到期日（与MatureSecurityAmount对应）</p>
+                    <p><strong>FIMAIncluded</strong>：是否包含外国和国际货币当局投资账户（FIMA）</p>
+                    <p><strong>Series</strong>：债券系列名称</p>
+                    <p><strong>FirstInterestPaymentDate</strong>：首次支付利息的日期</p>
+                    <p><strong>FrequencyInterestPayment</strong>：支付利息的频率（如半年、季度）</p>
+                    <p><strong>OriginalIssueDate</strong>：该债券最初发行的日期</p>
+                    <p><strong>InterestRate</strong>：票面利率（年化利息率）</p>
+                    <p><strong>BackDatedDate</strong>：若为倒签发行，此字段为实际计息起始日</p>
+                    <p><strong>RefCPIIssueDate</strong>：通胀挂钩债券参考的CPI发布日期</p>
+                    <p><strong>RefCPIDatedDate</strong>：通胀挂钩债券对应参考CPI的计息起始日</p>
+                    <p><strong>IndexRatioOnIssueDate</strong>：发行时的CPI指数比率（用于TIPS调整）</p>
+                    <p><strong>CPIBasePeriod</strong>：CPI基期（用于TIPS的通胀调整计算）</p>
+                    <p><strong>TIINConversionFactor</strong>：TIPS本息转换因子</p>
+                    <p><strong>UnadjustedAccruedInterest</strong>：未调整的应计利息</p>
+                    <p><strong>OriginalDatedDate</strong>：最初的计息起始日</p>
                 </div>
                 <div class="col-md-6">
-                    <p><strong>CompetitiveTenderAccepted</strong>：是否接受竞争性投标</p>
-                    <p><strong>NonCompetitiveTenderAccepted</strong>：是否接受非竞争性投标</p>
-                    <p><strong>TreasuryRetailTenderAccepted</strong>：是否接受零售投标</p>
-                    <p><strong>TypeOfAuction</strong>：拍卖类型</p>
-                    <p><strong>CompetitiveClosingTime</strong>：竞争性投标的截止时间</p>
-                    <p><strong>NonCompetitiveClosingTime</strong>：非竞争性投标的截止时间</p>
-                    <p><strong>NetLongPositionReport</strong>：净多头头寸报告</p>
-                    <p><strong>MaxAward</strong>：单个投标人能获得的最大额度</p>
-                    <p><strong>MaxSingleBid</strong>：单个投标的最大额度</p>
+                    <p><strong>StrippableIndicator</strong>：是否可被分离（STRIP）成本金和利息单独交易</p>
+                    <p><strong>MinStripAmount</strong>：最小可分离金额</p>
+                    <p><strong>CorpusCUSIP</strong>：可分离的本金CUSIP代码</p>
+                    <p><strong>TINTCUSIP1</strong>：第一组利息支付的CUSIP代码</p>
+                    <p><strong>ReOpeningIndicator</strong>：是否为旧债再发行</p>
+                    <p><strong>BackDated</strong>：是否为倒签日期发行</p>
+                    <p><strong>LongShortNormalCoupon</strong>：表示债券的票息周期类型（长、短或正常）</p>
+                    <p><strong>InflationIndexSecurity</strong>：是否为通胀挂钩证券（如TIPS）</p>
+                    <p><strong>FloatingRate</strong>：是否为浮动利率债券</p>
+                    <p><strong>DatedDate</strong>：计息起始日期</p>
+                    <p><strong>AnnouncementPDFName</strong>：对应公告的PDF文件名</p>
+                    <p><strong>NLPExclusionAmount</strong>：净多头头寸排除的金额</p>
+                    <p><strong>MaximumNonCompAward</strong>：非竞争性投标者的最大获配额度</p>
+                    <p><strong>Callable</strong>：是否可被提前赎回</p>
+                    <p><strong>CurrentlyOutstanding</strong>：当前未偿还总额</p>
+                    <p><strong>AdjustedAmountCurrentlyOutstanding</strong>：调整后的当前未偿还总额（考虑通胀因素）</p>
+                    <p><strong>AdjustedAccruedInterest</strong>：调整后的应计利息</p>
+                    <p><strong>Spread</strong>：债券利率相对于参考利率（如SOFR）的利差</p>
+                    <p><strong>StandardInterestPayment</strong>：标准利息支付金额（一般为周期性利息）</p>
+                    <p><strong>AccruedInterest</strong>：发行日的应计利息</p>
+                    <p><strong>TINTCUSIP2</strong>：第二组利息支付的CUSIP代码</p>
+                    <p><strong>id</strong>：系统内部标识符</p>
+                    <p><strong>TreasuryRetailTenderAccepte</strong>：是否接受零售用户投标（应为“TreasuryRetailTenderAccepted”的拼写错误）</p>
+                    <p><strong>TINTCUSIP1DueDate</strong>：TINTCUSIP1对应的利息支付到期日</p>
+                    <p><strong>TINTCUSIP2DueDate</strong>：TINTCUSIP2对应的利息支付到期日</p>
                 </div>
+                
             </div>
         </div>
     </div>
@@ -498,5 +532,6 @@
             window.location.href = '/?per_page=' + this.value;
         };
     </script>
+    <!-- 在页面底部添加以下JavaScript代码 -->
 </body>
 </html>

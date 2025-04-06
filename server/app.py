@@ -605,17 +605,11 @@ def graphdata():
         line=dict(color='orange', width=2)
     )
     
-    # 更新图表布局，添加全屏按钮
-    fig.update_layout(
-        height=800,
-        # 添加全屏按钮和其他配置
-        modebar_add=['fullscreen', 'pan', 'zoom', 'select', 'lasso', 'zoomIn', 'zoomOut', 'autoScale', 'resetScale'],
-        hovermode='closest'
-    )
+    fig.update_layout(height=800)
 
     return render_template(
         'graph.html', 
-        graph_html=fig.to_html(full_html=True, include_plotlyjs=True, config={'displayModeBar': True, 'responsive': True}), 
+        graph_html=fig.to_html(full_html=True), 
         x_field=x_field, 
         columns=columns,
         years=years,
@@ -689,26 +683,67 @@ def compare():
 # 月内数据日度细节
 @app.route('/get_data', methods=['POST'])
 def get_data():
-    """获取按日期汇总的数据"""
+    """获取按日期汇总的数据，包含当前月份和去年同月的对比"""
     req_data = request.json
     purpose = req_data['purpose']
     year = int(req_data['year'])
     month = int(req_data['month'])
-
-    # 查询数据
-    query = f"SELECT {purpose}, OfferingAmount FROM {TABLE} WHERE strftime('%Y', {purpose}) = ? AND strftime('%m', {purpose}) = ?"
-    df = execute_query(query, params=(str(year), f'{month:02d}'))
-
-    # 按日期汇总
-    df[purpose] = pd.to_datetime(df[purpose])
-    df = df.set_index(purpose)
-    result = df.resample('D').sum()
-
+    
+    # 计算去年同月
+    last_year = year - 1
+    
+    # 查询当前月份数据
+    current_query = f"SELECT {purpose}, OfferingAmount FROM {TABLE} WHERE strftime('%Y', {purpose}) = ? AND strftime('%m', {purpose}) = ?"
+    current_df = execute_query(current_query, params=(str(year), f'{month:02d}'))
+    
+    # 查询去年同月数据
+    last_year_query = f"SELECT {purpose}, OfferingAmount FROM {TABLE} WHERE strftime('%Y', {purpose}) = ? AND strftime('%m', {purpose}) = ?"
+    last_year_df = execute_query(last_year_query, params=(str(last_year), f'{month:02d}'))
+    
+    # 处理当前月份数据
+    if not current_df.empty:
+        current_df[purpose] = pd.to_datetime(current_df[purpose])
+        current_df = current_df.set_index(purpose)
+        current_result = current_df.resample('D').sum()
+    else:
+        # 创建空的DataFrame，避免后续处理出错
+        date_range = pd.date_range(start=f'{year}-{month:02d}-01', periods=31, freq='D')
+        current_result = pd.DataFrame(0, index=date_range, columns=['OfferingAmount'])
+    
+    # 处理去年同月数据
+    if not last_year_df.empty:
+        last_year_df[purpose] = pd.to_datetime(last_year_df[purpose])
+        last_year_df = last_year_df.set_index(purpose)
+        last_year_result = last_year_df.resample('D').sum()
+    else:
+        # 创建空的DataFrame，避免后续处理出错
+        date_range = pd.date_range(start=f'{last_year}-{month:02d}-01', periods=31, freq='D')
+        last_year_result = pd.DataFrame(0, index=date_range, columns=['OfferingAmount'])
+    
+    # 提取日期中的"日"部分作为标签
+    days = current_result.index.day.tolist()
+    
     # 格式化返回数据
-    labels = result.index.strftime('%Y-%m-%d').tolist()
-    values = result['OfferingAmount'].fillna(0).tolist()
-
-    return jsonify(labels=labels, values=values)
+    current_values = current_result['OfferingAmount'].fillna(0).tolist()
+    last_year_values = last_year_result['OfferingAmount'].fillna(0).tolist()
+    
+    # 确保两个列表长度一致（取最短的那个长度）
+    min_length = min(len(days), len(current_values), len(last_year_values))
+    days = days[:min_length]
+    current_values = current_values[:min_length]
+    last_year_values = last_year_values[:min_length]
+    
+    return jsonify({
+        'days': days,
+        'current_year': {
+            'year': year,
+            'values': current_values
+        },
+        'last_year': {
+            'year': last_year,
+            'values': last_year_values
+        }
+    })
 
 @app.route('/delete-record/<int:record_id>', methods=['POST'])
 def delete_record(record_id):

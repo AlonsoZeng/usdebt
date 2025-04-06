@@ -346,6 +346,7 @@
                 </form>
                 
                 <div class="chart-container">
+                    <div id="monthSummary" class="info-text mt-3"></div>
                     <canvas id="myChart"></canvas>
                 </div>
             </div>
@@ -370,6 +371,9 @@
                 yearSelect.appendChild(option);
             }
 
+            // 默认选择当前年份
+            yearSelect.value = currentYear;
+
             let chartInstance = null;
 
             document.getElementById('filterForm').addEventListener('submit', async (event) => {
@@ -378,60 +382,158 @@
                 const year = document.getElementById('year').value;
                 const month = document.getElementById('month').value;
 
-                const response = await fetch('/get_data', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ purpose, year, month })
-                });
-                const data = await response.json();
+                try {
+                    // 显示加载状态
+                    document.getElementById('myChart').style.opacity = '0.5';
+                    
+                    const response = await fetch('/get_data', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ purpose, year, month })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('网络响应错误');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // 恢复图表显示
+                    document.getElementById('myChart').style.opacity = '1';
+                    
+                    const ctx = document.getElementById('myChart').getContext('2d');
+                    
+                    if (chartInstance) {
+                        chartInstance.destroy();
+                    }
 
-                const ctx = document.getElementById('myChart').getContext('2d');
-                
-                if (chartInstance) {
-                    chartInstance.destroy();
-                }
-
-                chartInstance = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: data.labels,
-                        datasets: [{
-                            label: 'Offering Amount',
-                            data: data.values,
-                            backgroundColor: 'rgba(92, 107, 192, 0.7)',
-                            borderColor: 'rgba(63, 81, 181, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: { 
-                                beginAtZero: true,
-                                grid: {
-                                    display: false
+                    // 处理新的数据格式
+                    const days = data.days.map(day => day + '日');
+                    const currentYearData = data.current_year.values;
+                    const lastYearData = data.last_year.values;
+                    const currentYear = data.current_year.year;
+                    const lastYear = data.last_year.year;
+                    
+                    // 创建新的图表
+                    chartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: days,
+                            datasets: [
+                                {
+                                    label: `${currentYear}年数据`,
+                                    data: currentYearData,
+                                    backgroundColor: 'rgba(92, 107, 192, 0.7)',
+                                    borderColor: 'rgba(63, 81, 181, 1)',
+                                    borderWidth: 1
+                                },
+                                {
+                                    label: `${lastYear}年数据`,
+                                    data: lastYearData,
+                                    backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                                    borderColor: 'rgba(255, 99, 132, 1)',
+                                    borderWidth: 1
                                 }
-                            },
-                            y: { 
-                                beginAtZero: true,
-                                grid: {
-                                    color: 'rgba(0, 0, 0, 0.05)'
-                                }
-                            }
+                            ]
                         },
-                        plugins: {
-                            legend: {
-                                position: 'top',
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: { 
+                                    beginAtZero: true,
+                                    grid: {
+                                        display: false
+                                    }
+                                },
+                                y: { 
+                                    beginAtZero: true,
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.05)'
+                                    },
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value.toLocaleString();
+                                        }
+                                    }
+                                }
                             },
-                            title: {
-                                display: true,
-                                text: '月度数据分布'
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                },
+                                title: {
+                                    display: true,
+                                    text: `${document.getElementById('purpose').options[document.getElementById('purpose').selectedIndex].text} - ${document.getElementById('month').options[document.getElementById('month').selectedIndex].text}月度数据对比 (${currentYear} vs ${lastYear})`
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            label += context.parsed.y.toLocaleString();
+                                            return label;
+                                        }
+                                    }
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                    
+                    // 计算并显示月份总数对比
+                    const currentYearTotal = currentYearData.reduce((sum, value) => sum + value, 0);
+                    const lastYearTotal = lastYearData.reduce((sum, value) => sum + value, 0);
+                    const percentChange = lastYearTotal ? ((currentYearTotal - lastYearTotal) / lastYearTotal * 100).toFixed(2) : '∞';
+                    const changeDirection = currentYearTotal > lastYearTotal ? '增加' : '减少';
+                    const absPercentChange = Math.abs(percentChange);
+                    
+                    // 更新总数对比信息区域
+                    const summaryDiv = document.getElementById('monthSummary');
+                    
+                    summaryDiv.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">${currentYear}年${document.getElementById('month').options[document.getElementById('month').selectedIndex].text}总量</h5>
+                                        <p class="card-text h4 text-primary">${currentYearTotal.toLocaleString()}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">${lastYear}年${document.getElementById('month').options[document.getElementById('month').selectedIndex].text}总量</h5>
+                                        <p class="card-text h4 text-danger">${lastYearTotal.toLocaleString()}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card ${currentYearTotal > lastYearTotal ? 'bg-success' : 'bg-danger'} text-white">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">同比变化</h5>
+                                        <p class="card-text h4">
+                                            ${changeDirection} ${absPercentChange}%
+                                            <i class="fas fa-${currentYearTotal > lastYearTotal ? 'arrow-up' : 'arrow-down'} ml-2"></i>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error('获取数据失败:', error);
+                    alert('获取数据失败，请稍后重试');
+                    document.getElementById('myChart').style.opacity = '1';
+                }
             });
+            
+            // 页面加载时自动触发一次查询
+            setTimeout(() => {
+                document.querySelector('#filterForm button[type="submit"]').click();
+            }, 500);
         });
     </script>
 </body>
