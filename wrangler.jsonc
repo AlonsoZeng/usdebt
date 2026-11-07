@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "daily-tracker",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+
+  // 静态前端：public/ 下的文件由 Cloudflare 直接分发，不消耗 Worker 请求额度
+  "assets": {
+    "directory": "./public"
+  },
+
+  // 每天 UTC 01:05 跑一次。刻意避开整点，整点是全球 cron 拥堵高峰
+  "triggers": {
+    "crons": ["5 1 * * *"]
+  },
+
+  // database_id 需要先执行 npm run db:create 后回填
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "daily_tracker",
+      "database_id": "80d7ee7d-a4d3-4e91-a7d9-3d056f07a13c"
+    }
+  ],
+
+  "observability": {
+    "enabled": true
+  }
+}

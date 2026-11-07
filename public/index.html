@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>daily-tracker</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 data-i18n="greeting"></h1>
+    <p data-i18n="app.subtitle"></p>
+    <div class="header-meta" id="data-as-of"></div>
+  </header>
+
+  <nav id="tabs">
+    <button data-tab="overview" class="active" data-i18n="nav.overview"></button>
+    <button data-tab="stack" data-i18n="nav.stack"></button>
+    <button data-tab="compare" data-i18n="nav.compare"></button>
+    <button data-tab="monthly" data-i18n="nav.monthly"></button>
+    <button data-tab="table" data-i18n="nav.table"></button>
+  </nav>
+
+  <main>
+    <section id="tab-overview">
+      <div class="card">
+        <h2 data-i18n="health.title"></h2>
+        <p class="desc" id="health-note"></p>
+        <div class="grid" id="health-grid"></div>
+        <div class="controls" style="margin-top:16px">
+          <button class="ctl" id="health-refresh" data-i18n="health.refresh"></button>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-stack" hidden>
+      <div class="card">
+        <h2 data-i18n="stack.title"></h2>
+        <p class="desc" data-i18n="stack.desc"></p>
+        <div class="controls">
+          <label data-i18n="stack.granularity"></label>
+          <button class="ctl active" data-x="week" data-i18n="stack.week"></button>
+          <button class="ctl" data-x="month" data-i18n="stack.month"></button>
+          <label style="margin-left:12px" data-i18n="stack.range"></label>
+          <button class="ctl" data-years="1" data-i18n="stack.years1"></button>
+          <button class="ctl" data-years="3" data-i18n="stack.years3"></button>
+          <button class="ctl active" data-years="5" data-i18n="stack.years5"></button>
+          <button class="ctl" data-years="all" data-i18n="stack.all"></button>
+        </div>
+        <div class="chart-box"><canvas id="chart-stack"></canvas></div>
+        <div class="error" id="stack-error"></div>
+      </div>
+    </section>
+
+    <section id="tab-compare" hidden>
+      <div class="card">
+        <h2 data-i18n="compare.title"></h2>
+        <p class="desc" data-i18n="compare.desc"></p>
+        <div class="chart-box short"><canvas id="chart-compare"></canvas></div>
+        <div class="error" id="compare-error"></div>
+      </div>
+    </section>
+
+    <section id="tab-monthly" hidden>
+      <div class="card">
+        <h2 data-i18n="monthly.title"></h2>
+        <p class="desc" data-i18n="monthly.desc"></p>
+        <div class="controls">
+          <select id="monthly-year"></select>
+          <select id="monthly-month"></select>
+          <button class="ctl" id="monthly-go" data-i18n="monthly.submit"></button>
+        </div>
+        <div class="chart-box short"><canvas id="chart-monthly"></canvas></div>
+        <div class="error" id="monthly-error"></div>
+      </div>
+    </section>
+
+    <section id="tab-table" hidden>
+      <div class="card">
+        <h2 data-i18n="table.title"></h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th data-i18n="col.date"></th>
+              <th data-i18n="col.cusip"></th>
+              <th data-i18n="col.type"></th>
+              <th data-i18n="col.term"></th>
+              <th data-i18n="col.months"></th>
+              <th data-i18n="col.amount"></th>
+              <th data-i18n="col.source"></th>
+            </tr></thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+        <div class="controls" style="margin-top:14px">
+          <button class="ctl" id="table-more" data-i18n="table.loadMore"></button>
+        </div>
+        <div class="error" id="table-error"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer">daily-tracker · TreasuryDirect</div>
+</div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>

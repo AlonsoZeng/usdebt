@@ -1,0 +1,21 @@
+# 依赖与构建产物
+node_modules/
+.wrangler/
+dist/
+
+# 凭据（.manual-key.txt 已真实存在，git init 前必须已忽略）
+.env
+.dev.vars
+.manual-key.txt
+
+# 本地数据与生成物（迁移输入 2MB，不入库）
+*.db
+*.exe
+data/
+myenv/
+# scripts/verify.sql 是源码级验收断言，必须入库；生成物都在 data/ 已被忽略
+.probe/
+
+# 杂项
+*.log
+.DS_Store

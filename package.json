@@ -1,0 +1,26 @@
+{
+  "name": "daily-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "typecheck": "tsc --noEmit",
+    "dry-run": "wrangler deploy --dry-run --outdir=dist",
+    "test": "node --test tests/*.test.mjs",
+    "db:init": "wrangler d1 execute daily_tracker --remote --file=./schema.sql",
+    "db:migrate": "wrangler d1 execute daily_tracker --remote --file=./data/migration.sql",
+    "db:backfill": "wrangler d1 execute daily_tracker --remote --file=./data/backfill.sql",
+    "db:verify": "node scripts/verify.mjs",
+    "db:query": "wrangler d1 execute daily_tracker --remote --command",
+    "data:migrate": "python scripts/migrate_legacy.py",
+    "data:backfill": "python scripts/backfill.py",
+    "data:build": "node scripts/build_sql.mjs"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5",
+    "typescript": "^5",
+    "wrangler": "^4"
+  }
+}

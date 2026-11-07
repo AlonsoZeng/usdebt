@@ -1,0 +1,13 @@
+# 本地开发用（wrangler dev 自动读取），复制为 .dev.vars 后填值
+# 未配置也不影响启动：通知会静默跳过，日志里打印内容
+
+# 手动补跑口令，调用 POST /api/run 时放在 x-manual-key 头里
+MANUAL_KEY=change-me
+
+# 通知通道 A：Resend（开发期用共享发件人，无需域名）
+RESEND_API_KEY=
+NOTIFY_EMAIL=
+
+# 通知通道 B：Telegram（正式运行推荐）
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
