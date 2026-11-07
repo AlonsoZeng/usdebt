@@ -8,6 +8,6 @@ MANUAL_KEY=change-me
 RESEND_API_KEY=
 NOTIFY_EMAIL=
 
-# 通知通道 B：Telegram（正式运行推荐）
-TELEGRAM_BOT_TOKEN=
-TELEGRAM_CHAT_ID=
+# 通知通道 B：机器人 webhook（企业微信 / 飞书等，国内可达）
+# 代码发送格式：{ "msgtype": "text", "text": { "content": "..." } }
+NOTIFY_WEBHOOK=
