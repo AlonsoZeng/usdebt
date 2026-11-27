@@ -18,4 +18,5 @@ myenv/
 
 # 杂项
 *.log
+logs/
 .DS_Store

@@ -21,6 +21,7 @@ scripts/build_sql.mjs → src/normalize.ts 完成。
 from __future__ import annotations
 
 import json
+import sys
 import time
 import urllib.parse
 import urllib.request
@@ -81,10 +82,12 @@ def fetch_segment(seg_start: date, seg_end: date) -> list[dict]:
 
 
 def main() -> None:
+    # 断档恢复：python scripts/backfill.py 2026-11-01 只补该日之后的区间
+    start = date.fromisoformat(sys.argv[1]) if len(sys.argv) > 1 else START
     collected: list[dict] = []
     today_iso = TODAY.isoformat()
 
-    for seg_start, seg_end in month_segments(START, TODAY):
+    for seg_start, seg_end in month_segments(start, TODAY):
         rows = fetch_segment(seg_start, seg_end)
         kept = 0
         for r in rows:

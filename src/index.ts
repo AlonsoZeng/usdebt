@@ -61,6 +61,8 @@ export default {
           return analyticsRows(url.searchParams, env);
         case '/api/analytics/monthly':
           return monthly(url.searchParams, env);
+        case '/api/diag':
+          return diag(env);
       }
     }
     if (url.pathname === '/api/run') return manualRun(request, url.searchParams, env);
@@ -103,6 +105,65 @@ async function health(env: Env): Promise<Response> {
   } catch (error) {
     return json({ ok: false, db: 'error', error: messageOf(error) }, 500);
   }
+}
+
+/**
+ * GET /api/diag —— 只读出站连通性诊断
+ *
+ * 目的：定位 cron 返回 `upstream HTTP 525` 的真实原因。525 是 Cloudflare 对
+ * 「与上游 TLS 握手失败」的转述，Worker 内部看不到底层握手细节，因此用
+ * 「已知只支持 TLS 1.2 的站点」做对照，区分两种可能：
+ *   A. 出站无法与仅支持 TLS 1.2 的站点协商 → 协议层不兼容（全局问题）
+ *   B. 只有 treasurydirect 失败       → 站点级封锁（IP / 指纹）
+ *
+ * 安全：目标 URL 全部硬编码，不接受外部参数，不能当 SSRF 跳板。
+ * 结果同时写入 runs(status='diag')，便于无浏览器环境下读库分析。
+ */
+async function diag(env: Env): Promise<Response> {
+  const targets: { name: string; url: string }[] = [
+    { name: 'tls12_only', url: 'https://tls-v1-2.badssl.com:1012/' },
+    { name: 'baseline_google', url: 'https://www.google.com/' },
+    {
+      name: 'treasury_https',
+      url: 'https://www.treasurydirect.gov/TA_WS/securities/auctioned?format=json&pagesize=1'
+    },
+    {
+      name: 'treasury_http',
+      url: 'http://www.treasurydirect.gov/TA_WS/securities/auctioned?format=json&pagesize=1'
+    }
+  ];
+
+  const results = await Promise.all(
+    targets.map(async (t) => {
+      const t0 = Date.now();
+      try {
+        const res = await fetch(t.url, {
+          redirect: 'manual',
+          signal: AbortSignal.timeout(8000),
+          headers: { 'user-agent': 'daily-tracker/1.0 (+personal research)' }
+        });
+        return {
+          name: t.name,
+          ok: true,
+          status: res.status,
+          ms: Date.now() - t0,
+          location: res.headers.get('location') ?? null
+        };
+      } catch (error) {
+        return { name: t.name, ok: false, ms: Date.now() - t0, error: messageOf(error) };
+      }
+    })
+  );
+
+  const now = new Date().toISOString();
+  const detail = JSON.stringify({ kind: 'diag', results });
+  try {
+    await env.DB.prepare(
+      'INSERT INTO runs (started_at, finished_at, status, detail) VALUES (?, ?, ?, ?)'
+    ).bind(now, now, 'diag', detail).run();
+  } catch { /* 落库失败不阻断诊断返回 */ }
+
+  return json({ ok: true, ranAt: now, results });
 }
 
 async function listAuctions(p: URLSearchParams, env: Env): Promise<Response> {

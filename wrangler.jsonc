@@ -9,10 +9,16 @@
     "directory": "./public"
   },
 
-  // 每天 UTC 01:05 跑一次。刻意避开整点，整点是全球 cron 拥堵高峰
-  "triggers": {
-    "crons": ["5 1 * * *"]
-  },
+  // ⚠️ 抓取已下沉到本地（scripts/daily_sync.py），云端 cron 已移除（CHG-04）。
+  // 原因：TreasuryDirect 的 F5 只在 TLS 握手层丢弃来自 Cloudflare 网络的连接。
+  //   诊断实测（/api/diag 2026-11-27）：treasury_http 302/149ms 通、
+  //   treasury_https 超时/525、tls12_only 200/275ms（排除协议不兼容）。
+  //   即 TCP/IP 与服务器都正常，仅 TLS 握手被定向拒绝，Workers 无法自救。
+  // 保留一个注定失败的 cron 只会每天写一条 failed，掩盖真实健康状态。
+  // 若上游将来解封，取消下面注释即可恢复云端抓取。
+  // "triggers": {
+  //   "crons": ["5 1 * * *"]
+  // },
 
   // database_id 需要先执行 npm run db:create 后回填
   "d1_databases": [

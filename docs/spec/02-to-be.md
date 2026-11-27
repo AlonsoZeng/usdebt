@@ -306,5 +306,6 @@ scripts/verify.py           对生成的 SQL 做迁移前断言（AC-03 的本�
 | CHG-01 | DOR-2 通知渠道 | 由「本期交付」降级为**低优先级待办，本期不做** | `src/notify.ts` 与 `NOTIFY_EMAIL` 保留但不配 key；`/api/health.notify = "skipped"` 属预期值而非故障；失败留痕由 `runs.detail` 承担。**不新增、不放宽任何验收项** |
 | CHG-02 | Git 与代码托管 | 初始化 git，主分支替换为重构版，旧版完整保留在 `legacy/v1` 分支及历史提交 | 不影响任何 AC；离线流水线所需的 `server/mydatabase.db` 从 `legacy/v1` 获取 |
 | CHG-03 | Cron 验证口径 | 明确「库里有最新数据」来自离线补数，**不等于** cron 已验证 | `runs` 为空时 AC-04b / AC-09 的 LIVE 部分仍为待验证；DATA 层 ALL PASS 不得据此升级为全绿 |
+| CHG-04 | **抓取执行位置**（2026-11-27） | 云端 Cron **移除**，抓取下沉本地：`scripts/daily_sync.py`（40 天窗口，WorkBuddy 自动化每天 09:30 触发）。依据：`/api/diag` 实测 `treasury_http` 302/149ms 通、`treasury_https` 超时/525、`tls12_only.badssl` 200/275ms 排除协议不兼容、`google` 302 证明出站健康 → 上游 F5 在 **TLS 握手层**定向拒绝 Cloudflare 网络出口 | AC-04b 的 CPU 验收改为本地执行时长；云端 cron 相关验收作废（保留 `wrangler.jsonc` 注释，上游解封可恢复）；新增 `GET /api/diag` 只读端点（4 个硬编码目标，不接受外部参数，不构成 SSRF） |
 
-**状态**：spec 保持 **APPROVED v2**。以上变更只收窄交付范围、澄清验收口径，未放宽任何验收条件。
+**状态**：spec 保持 **APPROVED v2**。CHG-01/02/03 只收窄交付范围、澄清验收口径；**CHG-04 是唯一一次架构性变更**，由实测证据驱动（20 天全失败 + 四目标对照诊断），不是猜测。所有变更均未放宽验收条件。

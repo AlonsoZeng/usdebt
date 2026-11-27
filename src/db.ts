@@ -131,8 +131,9 @@ export function healthQuery(): Query {
       'SELECT ' +
       "(SELECT COUNT(*) FROM auctions) AS auctions, " +
       "(SELECT MAX(auction_date) FROM auctions) AS data_through, " +
-      "(SELECT started_at FROM runs ORDER BY id DESC LIMIT 1) AS last_started, " +
-      "(SELECT status FROM runs ORDER BY id DESC LIMIT 1) AS last_status, " +
+      // status='diag' 是诊断记录，不属于任务执行，不能覆盖健康状态
+      "(SELECT started_at FROM runs WHERE status IN ('ok','failed') ORDER BY id DESC LIMIT 1) AS last_started, " +
+      "(SELECT status FROM runs WHERE status IN ('ok','failed') ORDER BY id DESC LIMIT 1) AS last_status, " +
       "(SELECT finished_at FROM runs WHERE status = 'ok' ORDER BY id DESC LIMIT 1) AS last_success_at",
     binds: []
   };

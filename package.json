@@ -16,7 +16,8 @@
     "db:query": "wrangler d1 execute daily_tracker --remote --command",
     "data:migrate": "python scripts/migrate_legacy.py",
     "data:backfill": "python scripts/backfill.py",
-    "data:build": "node scripts/build_sql.mjs"
+    "data:build": "node scripts/build_sql.mjs",
+    "data:sync": "python scripts/daily_sync.py"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5",
